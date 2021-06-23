@@ -1,29 +1,41 @@
-(function () {
-// just a wrapper to avoid global scope
+(function() {
+    let storedBitts = localStorage.bitts;
 
-    let xhttp = new XMLHttpRequest();
+    if (storedBitts) {
+        console.log("Get Bitts from LocalStorage");
 
-    xhttp.onreadystatechange = function() {
-        if (this.readyState === 4) {
-            if(this.status === 200) {
+        let container = document.getElementById("bittsContainer");
+        let bitts = JSON.parse(storedBitts);
+
+        for (let bitt of bitts) {
+            let bittElement = document.createElement("p");
+            bittElement.innerHTML = bitt.text + "<br><small>" + bitt.username + "</small>";
+            container.appendChild(bittElement);
+        }
+    }
+    else {
+        console.log("Get Bitts from RemoteServer");
+        fetch("/get-all-bitts")
+            .then(function(response) {
+                // Process API response
+                return response.text();
+            })
+            .then(function(text) {
+                // save Bitts in LocalStorage
+                localStorage.bitts = text;
+
                 let container = document.getElementById("bittsContainer");
-                let bitts = JSON.parse(xhttp.responseText);
+                let bitts = JSON.parse(text);
 
-
-                for(let bitt of bitts) {
+                for (let bitt of bitts) {
                     let bittElement = document.createElement("p");
-                    bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "</small";
-
+                    bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "</small>";
                     container.appendChild(bittElement);
                 }
-
-            } else {
-                console.log("Oops, there was an error processing API request");
-            }
-        }
-    };
-
-    xhttp.open("GET", "/get-all-bitts", true);
-    xhttp.send();
-
+            })
+            .catch(function(error){
+                // Process API error
+                console.log("Request failed", error);
+            });
+    }
 }())

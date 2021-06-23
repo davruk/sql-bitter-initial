@@ -1,6 +1,5 @@
 (function () {
-
-    let bittSubmit = document.getElementById("bittSubmit");
+    let bittSubmit = document.getElementById("BittSubmit");
 
     bittSubmit.addEventListener("click", function() {
         let username = document.getElementById("usernameBittInput").value;
@@ -8,32 +7,33 @@
 
         let jsonData = JSON.stringify({"username": username, "text": text});
 
-        let xhttp = new XMLHttpRequest();
+        fetch("/create-bitt",{
+            method: "post",
+            headers: {
+                "Content-Type":"application/json;charset=UTF-8"
+            },
+            body:jsonData
+        })
+        .then(response => response.json())
+        .then(function(bitt){
+            let container = document.getElementById("bittsContainer");
 
-        xhttp.onload = function() {
-            if (this.readyState === 4) {
-                if(this.status === 200) {
-                    console.log(xhttp.responseText);
+            // Extend HTML UI with new Bitt
+            let bittElement = document.createElement("p");
+            bittElement.innerHTML + bitt.text + "<br> <small>" + bitt.username + "</small>";
+            container.prepend(bittElement);
 
-                    bitt = JSON.parse(xhttp.responseText);
+            // Extend LocalStorage with new Bitt
+            let storedBitts = JSON.parse(localStorage.bitts);
+            storedBitts.unshift(bitt);
+            localStorage.bitts = JSON.stringify(storedBitts);
 
-                    let container = document.getElementById("bittsContainer");
-
-                    let bittElement = document.createElement("p");
-                    bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "</small>";
-
-                    container.prepend(bittElement); // put the bitt at the top of the page (prepend)
-
-                    document.getElementById("createBittModal").click(); // close the modal
-                } else {
-                    console.log("Ooops, there was an error...");
-                }
-            }
-        };
-
-        xhttp.open("POST", "/create-bitt", true);
-        xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xhttp.send(jsonData);
+            document.getElementById("createBittModal").click();
+        })
+        .catch(function(error){
+            // Process API error
+            console.log("Request failed", error);
+        });
     });
 
 }())
