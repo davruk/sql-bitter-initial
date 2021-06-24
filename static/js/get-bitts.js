@@ -1,41 +1,48 @@
 (function() {
-    let storedBitts = localStorage.bitts;
+    function getBitts(){
+        console.log("GetBitts occuring every three minutes");
 
-    if (storedBitts) {
-        console.log("Get Bitts from LocalStorage");
+        // Get Bitts from LocalStorage
+        let storredBittsRaw = localStorage.bitts;
+        let lastBittid = null;
+        let storredBitts = null;
 
-        let container = document.getElementById("bittsContainer");
-        let bitts = JSON.parse(storedBitts);
-
-        for (let bitt of bitts) {
-            let bittElement = document.createElement("p");
-            bittElement.innerHTML = bitt.text + "<br><small>" + bitt.username + "</small>";
-            container.appendChild(bittElement);
+        if(storredBittsRaw) {
+            storredBitts = JSON.parse(storredBittsRaw);
+            lastBittid = storredBitts[0].id;
         }
-    }
-    else {
-        console.log("Get Bitts from RemoteServer");
-        fetch("/get-all-bitts")
-            .then(function(response) {
-                // Process API response
-                return response.text();
-            })
-            .then(function(text) {
-                // save Bitts in LocalStorage
+        fetch("/get-all-bitts?lastid="+lastBittid)
+        .then(function(response){
+            return response.text();
+        })
+        .then(function(text){
+            console.log(text);
+            let response = JSON.parse(text);
+
+            if(response.synced){
+                console.log("LocalStorage is inSync with ServerStorage");
+            }
+            else {
                 localStorage.bitts = text;
+                storedBitts = JSON.parse(text);
+            }
 
-                let container = document.getElementById("bittsContainer");
-                let bitts = JSON.parse(text);
+            // Show Bitts in HTML
+            let container = document.getElementById("bittsContainer");
+            container.innerHTML = "";
 
-                for (let bitt of bitts) {
-                    let bittElement = document.createElement("p");
-                    bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "</small>";
-                    container.appendChild(bittElement);
-                }
-            })
-            .catch(function(error){
-                // Process API error
-                console.log("Request failed", error);
-            });
+            for (let bitt of storredBitts) {
+                let bittElement = document.createElement("p");
+                bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "<(</small>";
+                container.appendChild(bittElement);
+            }
+        })
+        .catch(function(error){
+            console.log("API request failed", error);
+        });
     }
+
+    // Initial getBitts run
+    getBitts();
+    setInterval(getBitts,1000);
 }())
