@@ -33,7 +33,7 @@
 
             for (let bitt of storredBitts) {
                 let bittElement = document.createElement("p");
-                bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "<(</small>";
+                bittElement.innerHTML = bitt.text + "<br> <small>" + bitt.username + "</small>";
                 container.appendChild(bittElement);
             }
         })
